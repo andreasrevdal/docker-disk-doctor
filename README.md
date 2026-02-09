@@ -4,8 +4,6 @@ Docker Disk Doctor is a safe, explain-first CLI tool that shows **how Docker is 
 
 Built from real homelab and infrastructure pain.
 
----
-
 ## Why this exists
 
 Docker is great… until your disk suddenly fills up.
@@ -20,37 +18,29 @@ docker system prune -a
 
 Docker Disk Doctor exists to answer one simple question **before you delete anything**:
 
-> *What exactly is using my disk space, and what is safe to remove?*
+> What exactly is using my disk space, and what is safe to remove?
 
-This tool **does not delete anything automatically**.  
-It explains first, so you can decide.
-
----
+This tool is **safe-by-default**. It explains first, so you can decide.
 
 ## Features
 
-- Breakdown of Docker disk usage:
+- Full breakdown of Docker disk usage:
   - Images (used vs unused)
   - Containers (running vs stopped)
   - Volumes (attached vs orphaned)
-- Clear, readable CLI output
+- Actual disk usage (MB / GB)
+- Clear, readable CLI tables
+- Safe-by-default cleanup (nothing is deleted unless you explicitly confirm)
 - Designed for homelabs, servers, and real systems
-
-
----
 
 ## Screenshot
 
-![Preview](docs/screenshot-preview.png)
-
 <details>
-<summary>Full output</summary>
+<summary>Click to expand example output</summary>
 
-![Full output](docs/screenshot-full.png)
+![Docker Disk Doctor example output](docs/screenshot.png)
 
 </details>
-
----
 
 ## Installation
 
@@ -68,14 +58,12 @@ pipx ensurepath
 
 You may need to open a **new shell** after running `pipx ensurepath`.
 
----
-
 ### Install Docker Disk Doctor
 
 Install directly from GitHub:
 
 ```bash
-pipx install git+https://github.com/AndreasRevdal/docker-disk-doctor.git
+pipx install git+https://github.com/andreasrevdal/docker-disk-doctor.git
 ```
 
 This installs the `docker-disk-doctor` command globally for your user.
@@ -83,44 +71,52 @@ This installs the `docker-disk-doctor` command globally for your user.
 > Note: This project is currently installed directly from GitHub.  
 > A PyPI release (`pipx install docker-disk-doctor`) will come later.
 
----
-
 ## Usage
+
+Show disk usage breakdown:
 
 ```bash
 docker-disk-doctor
 ```
 
----
+This will display:
+- Used vs unused images
+- Running vs stopped containers
+- Attached vs orphaned volumes
+
+No changes are made to your system.
 
 ## Cleanup (optional)
 
-This tool is safe-by-default. It will not delete anything unless you explicitly tell it to.
+Docker Disk Doctor is **safe-by-default**.
+
+Nothing is deleted unless you explicitly confirm it.
 
 ### Preview cleanup (dry-run)
+
 ```bash
 docker-disk-doctor --clean --all
+```
 
----
+### Apply cleanup (unused images + orphan volumes)
 
-## Safety
+```bash
+docker-disk-doctor --clean --all --apply --yes
+```
 
-Docker Disk Doctor **never deletes anything automatically**.
+You can also target only one type:
 
-No prune.  
-No cleanup without confirmation.  
-No surprises.
-
----
+```bash
+docker-disk-doctor --clean --images
+docker-disk-doctor --clean --volumes
+```
 
 ## Support
 
 If this tool saved you time, stress, or disk space,  
-consider buying me a compute ☕  
+consider buying me a compute ☕
 
 https://buymeacoffee.com/revdal
-
----
 
 ## License
 

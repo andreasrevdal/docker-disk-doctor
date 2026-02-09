@@ -1,4 +1,6 @@
-def format_bytes(num):
+from __future__ import annotations
+
+def format_bytes(num: int | float | None) -> str:
     if num is None:
         return "0 B"
     num = float(num)
