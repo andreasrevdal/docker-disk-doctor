@@ -41,7 +41,14 @@ It explains first, so you can decide.
 
 ## Screenshot
 
-![Docker Disk Doctor output](docs/screenshot.png)
+![Preview](docs/screenshot-preview.png)
+
+<details>
+<summary>Full output</summary>
+
+![Full output](docs/screenshot-full.png)
+
+</details>
 
 ---
 
