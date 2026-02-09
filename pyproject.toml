@@ -10,4 +10,5 @@ dependencies = [
 ]
 
 [project.scripts]
-docker-disk-doctor = "cli:main"
+docker-disk-doctor = "doctor.cli:main"
+

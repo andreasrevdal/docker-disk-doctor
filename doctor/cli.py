@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from doctor.analyze import connect
 from doctor.images import analyze_images
 from doctor.containers import analyze_containers
@@ -18,6 +17,3 @@ def main():
     console.print(f"Images: {len(images)}")
     console.print(f"Containers: {len(containers)}")
     console.print(f"Volumes: {len(volumes)}")
-
-if __name__ == "__main__":
-    main()
