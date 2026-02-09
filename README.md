@@ -36,6 +36,13 @@ It explains first, so you can decide.
 - Clear, readable CLI output
 - Designed for homelabs, servers, and real systems
 
+
+---
+
+## Screenshot
+
+![Docker Disk Doctor output](docs/screenshot.png)
+
 ---
 
 ## Installation
@@ -76,6 +83,16 @@ This installs the `docker-disk-doctor` command globally for your user.
 ```bash
 docker-disk-doctor
 ```
+
+---
+
+## Cleanup (optional)
+
+This tool is safe-by-default. It will not delete anything unless you explicitly tell it to.
+
+### Preview cleanup (dry-run)
+```bash
+docker-disk-doctor --clean --all
 
 ---
 

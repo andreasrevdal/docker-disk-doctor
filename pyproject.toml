@@ -1,15 +1,10 @@
 [project]
 name = "docker-disk-doctor"
-version = "0.1.0"
+version = "0.2.0"
 description = "Explain-first Docker disk usage inspector"
 authors = [{name = "Andreas Revdal"}]
 license = {text = "MIT"}
-dependencies = [
-  "docker",
-  "rich"
-]
+dependencies = ["docker", "rich"]
 
 [project.scripts]
 docker-disk-doctor = "doctor.cli:main"
-
-

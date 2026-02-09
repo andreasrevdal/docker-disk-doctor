@@ -1,28 +1,16 @@
 from doctor.utils import format_bytes
 
-def analyze_containers(df: dict):
-    containers = df.get("Containers", [])
+def analyze_containers(df):
     results = []
-
-    for c in containers:
-        names = c.get("Names") or []
-        name = names[0].lstrip("/") if names else (c.get("Id", "")[:12])
-
-        state = c.get("State", "unknown")
-        status = c.get("Status", "")
-
-        size_rw = c.get("SizeRw", 0) or 0
-        size_root = c.get("SizeRootFs", 0) or 0
-
+    for c in df.get("Containers", []):
+        rw = c.get("SizeRw", 0) or 0
+        root = c.get("SizeRootFs", 0) or 0
+        name = (c.get("Names") or [""])[0].lstrip("/")
         results.append({
             "name": name,
-            "state": state,
-            "status": status,
-            "size_rw_bytes": size_rw,
-            "size_rw": format_bytes(size_rw),
-            "size_rootfs_bytes": size_root,
-            "size_rootfs": format_bytes(size_root),
+            "state": c.get("State", ""),
+            "size_rw_bytes": rw,
+            "size_rw": format_bytes(rw),
+            "size_rootfs": format_bytes(root),
         })
-
-    results.sort(key=lambda x: x["size_rw_bytes"], reverse=True)
     return results

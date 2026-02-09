@@ -1,4 +1,4 @@
-def format_bytes(num: int | float | None) -> str:
+def format_bytes(num):
     if num is None:
         return "0 B"
     num = float(num)
