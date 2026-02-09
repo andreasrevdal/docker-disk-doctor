@@ -13,7 +13,7 @@ Blindly running `docker system prune` is stressful. Docker Disk Doctor explains 
 
 ## Installation
 ```bash
-pipx install docker-disk-doctor
+pipx install git+https://github.com/AndreasRevdal/docker-disk-doctor.git
 ```
 
 ## Usage
