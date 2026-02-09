@@ -14,6 +14,7 @@ from doctor.utils import format_bytes
 
 console = Console()
 
+
 def _summary_panel(images: list[dict], containers: list[dict], volumes: list[dict]) -> Panel:
     used_images = sum(1 for i in images if i["used"])
     unused_images = len(images) - used_images
@@ -37,6 +38,7 @@ def _summary_panel(images: list[dict], containers: list[dict], volumes: list[dic
     ])
     return Panel(text, title="Docker Disk Doctor", expand=False)
 
+
 def _images_table(images: list[dict]) -> Table:
     t = Table(title="Images (used vs unused)")
     t.add_column("Tag", overflow="fold")
@@ -48,6 +50,7 @@ def _images_table(images: list[dict]) -> Table:
         status = "[green]used[/green]" if i["used"] else "[yellow]unused[/yellow]"
         t.add_row(i["tag"], status, i["size"], i["reclaimable"])
     return t
+
 
 def _containers_table(containers: list[dict]) -> Table:
     t = Table(title="Containers (running vs stopped)")
@@ -61,6 +64,7 @@ def _containers_table(containers: list[dict]) -> Table:
         t.add_row(c["name"], state, c["size_rw"], c["size_rootfs"])
     return t
 
+
 def _volumes_table(volumes: list[dict]) -> Table:
     t = Table(title="Volumes (attached vs orphaned)")
     t.add_column("Name", overflow="fold")
@@ -73,29 +77,18 @@ def _volumes_table(volumes: list[dict]) -> Table:
         t.add_row(v["name"], status, v["size"], str(v["refcount"]))
     return t
 
-def _build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(
-        prog="docker-disk-doctor",
-        description="Explain-first Docker disk usage inspector (safe-by-default)."
-    )
-    p.add_argument("--clean", action="store_true", help="Show what would be removed (dry-run).")
-    p.add_argument("--apply", action="store_true", help="Actually perform removals (requires --yes).")
-    p.add_argument("--yes", action="store_true", help="Confirm destructive actions when using --apply.")
-    p.add_argument("--images", action="store_true", help="Include unused image cleanup.")
-    p.add_argument("--volumes", action="store_true", help="Include orphan volume cleanup.")
-    p.add_argument("--all", action="store_true", help="Equivalent to --images --volumes.")
-    return p
 
-def main():
-    args = _build_parser().parse_args()
-
+def _load():
     client = connect()
     df = system_df(client)
-
     images = analyze_images(df)
     containers = analyze_containers(df)
     volumes = analyze_volumes(df)
+    return client, images, containers, volumes
 
+
+def cmd_report(_args):
+    _client, images, containers, volumes = _load()
     console.print(_summary_panel(images, containers, volumes))
     console.print()
     console.print(_images_table(images))
@@ -104,36 +97,94 @@ def main():
     console.print()
     console.print(_volumes_table(volumes))
 
-    if args.clean or args.apply:
-        do_images = args.all or args.images
-        do_volumes = args.all or args.volumes
 
-        if args.apply and not args.yes:
-            console.print("\n[bold red]Refusing to delete without --yes.[/bold red]")
-            console.print("[dim]Tip: run with --clean first, then add --apply --yes when you’re confident.[/dim]")
-            return
+def _do_cleanup(target: str, apply: bool, yes: bool):
+    client, images, containers, volumes = _load()
 
-        if not do_images and not do_volumes:
-            console.print("\n[yellow]Nothing selected.[/yellow] Use --all or --images/--volumes.")
-            return
+    # Always show report first (nice UX)
+    console.print(_summary_panel(images, containers, volumes))
+    console.print()
 
-        console.print("\n[bold]Cleanup plan[/bold]")
-        console.print("[dim]Dry-run unless you pass --apply --yes.[/dim]\n")
+    do_images = target in ("images", "all")
+    do_volumes = target in ("volumes", "all")
 
-        total_est = 0
+    if apply and not yes:
+        console.print("[bold red]Refusing to delete without --yes.[/bold red]")
+        console.print("[dim]Tip: run `dockerdoctor test clean all` first, then re-run with --yes.[/dim]")
+        return 2
 
-        if do_images:
-            removed, bytes_est = cleanup_unused_images(client, images, apply=args.apply)
-            total_est += bytes_est
-            console.print(f"- Unused images: {'removed '+str(removed) if args.apply else 'would remove'} (est {format_bytes(bytes_est)})")
+    console.print("[bold]Cleanup plan[/bold]")
+    console.print("[dim]Dry-run unless you use `dockerdoctor clean ... --yes`.[/dim]\n")
 
-        if do_volumes:
-            removed, bytes_est = cleanup_orphan_volumes(client, volumes, apply=args.apply)
-            total_est += bytes_est
-            console.print(f"- Orphan volumes: {'removed '+str(removed) if args.apply else 'would remove'} (est {format_bytes(bytes_est)})")
+    total_est = 0
 
-        console.print(f"\n[bold]Estimated space change:[/bold] {format_bytes(total_est)}")
-        if args.apply:
-            console.print("[green]Cleanup completed.[/green]")
+    if do_images:
+        removed, skipped, est = cleanup_unused_images(client, images, apply=apply)
+        total_est += est
+        if apply:
+            console.print(f"- Unused images: removed {removed}, skipped {skipped} (est {format_bytes(est)})")
         else:
-            console.print("[yellow]Dry-run only.[/yellow] Re-run with --apply --yes to actually delete.")
+            console.print(f"- Unused images: would remove {sum(1 for i in images if not i['used'])} (est {format_bytes(est)})")
+
+    if do_volumes:
+        removed, skipped, est = cleanup_orphan_volumes(client, volumes, apply=apply)
+        total_est += est
+        if apply:
+            console.print(f"- Orphan volumes: removed {removed}, skipped {skipped} (est {format_bytes(est)})")
+        else:
+            console.print(f"- Orphan volumes: would remove {sum(1 for v in volumes if not v['attached'])} (est {format_bytes(est)})")
+
+    console.print(f"\n[bold]Estimated space change:[/bold] {format_bytes(total_est)}")
+    if apply:
+        console.print("[green]Cleanup completed.[/green]")
+    else:
+        console.print("[yellow]Dry-run only.[/yellow]")
+
+    return 0
+
+
+def cmd_test_clean(args):
+    return _do_cleanup(args.target, apply=False, yes=False)
+
+
+def cmd_clean(args):
+    return _do_cleanup(args.target, apply=True, yes=args.yes)
+
+
+def build_parser():
+    p = argparse.ArgumentParser(prog="dockerdoctor", description="Docker Disk Doctor (safe-by-default)")
+    sub = p.add_subparsers(dest="command")
+
+    # default: report (also used when command is None)
+    report = sub.add_parser("report", help="Show disk usage breakdown (default).")
+    report.set_defaults(func=cmd_report)
+
+    # test clean
+    test = sub.add_parser("test", help="Dry-run actions.")
+    test_sub = test.add_subparsers(dest="test_command")
+
+    test_clean = test_sub.add_parser("clean", help="Dry-run cleanup plan.")
+    test_clean.add_argument("target", choices=["images", "volumes", "all"], help="What to clean.")
+    test_clean.set_defaults(func=cmd_test_clean)
+
+    # clean (apply)
+    clean = sub.add_parser("clean", help="Apply cleanup (requires --yes).")
+    clean.add_argument("target", choices=["images", "volumes", "all"], help="What to clean.")
+    clean.add_argument("--yes", action="store_true", help="Confirm destructive actions.")
+    clean.set_defaults(func=cmd_clean)
+
+    return p
+
+
+def main():
+    parser = build_parser()
+    args = parser.parse_args()
+
+    # No subcommand -> default to report
+    if not getattr(args, "command", None):
+        cmd_report(args)
+        return 0
+
+    # Execute selected function
+    res = args.func(args)
+    return int(res) if isinstance(res, int) else 0

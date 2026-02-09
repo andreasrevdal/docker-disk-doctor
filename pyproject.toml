@@ -12,6 +12,8 @@ dependencies = [
 
 [project.scripts]
 docker-disk-doctor = "doctor.cli:main"
+dockerdoctor = "doctor.cli:main"
+
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]

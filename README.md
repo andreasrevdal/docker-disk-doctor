@@ -1,8 +1,10 @@
 # Docker Disk Doctor
 
-Docker Disk Doctor is a safe, explain-first CLI tool that shows **how Docker is using disk space** and what is **safe to clean** — without blindly running `docker system prune`.
+Docker Disk Doctor is a **safe, explain-first CLI tool** that shows how Docker is using disk space and what is safe to clean — without blindly running `docker system prune`.
 
 Built from real homelab and infrastructure pain.
+
+---
 
 ## Why this exists
 
@@ -20,7 +22,10 @@ Docker Disk Doctor exists to answer one simple question **before you delete anyt
 
 > What exactly is using my disk space, and what is safe to remove?
 
-This tool is **safe-by-default**. It explains first, so you can decide.
+This tool is **safe-by-default**.  
+It explains first — *you* decide what to clean.
+
+---
 
 ## Features
 
@@ -33,6 +38,8 @@ This tool is **safe-by-default**. It explains first, so you can decide.
 - Safe-by-default cleanup (nothing is deleted unless you explicitly confirm)
 - Designed for homelabs, servers, and real systems
 
+---
+
 ## Screenshot
 
 <details>
@@ -42,13 +49,15 @@ This tool is **safe-by-default**. It explains first, so you can decide.
 
 </details>
 
+---
+
 ## Installation
 
 ### Prerequisites
 
-You need `pipx` installed.
+You need `pipx`.
 
-On most Debian/Ubuntu-based systems:
+On most Debian / Ubuntu systems:
 
 ```bash
 sudo apt update
@@ -56,7 +65,9 @@ sudo apt install -y pipx
 pipx ensurepath
 ```
 
-You may need to open a **new shell** after running `pipx ensurepath`.
+> You may need to open a **new shell** after running `pipx ensurepath`.
+
+---
 
 ### Install Docker Disk Doctor
 
@@ -66,25 +77,30 @@ Install directly from GitHub:
 pipx install git+https://github.com/andreasrevdal/docker-disk-doctor.git
 ```
 
-This installs the `docker-disk-doctor` command globally for your user.
+This installs the `dockerdoctor` command globally for your user.
 
-> Note: This project is currently installed directly from GitHub.  
-> A PyPI release (`pipx install docker-disk-doctor`) will come later.
+> Note: The tool is currently installed directly from GitHub.  
+> A PyPI release (`pipx install docker-disk-doctor`) may come later.
+
+---
 
 ## Usage
 
-Show disk usage breakdown:
+### Show disk usage breakdown (default)
 
 ```bash
-docker-disk-doctor
+dockerdoctor
 ```
 
 This will display:
+
 - Used vs unused images
 - Running vs stopped containers
 - Attached vs orphaned volumes
 
 No changes are made to your system.
+
+---
 
 ## Cleanup (optional)
 
@@ -95,21 +111,41 @@ Nothing is deleted unless you explicitly confirm it.
 ### Preview cleanup (dry-run)
 
 ```bash
-docker-disk-doctor --clean --all
+dockerdoctor test clean all
 ```
 
-### Apply cleanup (unused images + orphan volumes)
+You can also preview specific targets:
 
 ```bash
-docker-disk-doctor --clean --all --apply --yes
+dockerdoctor test clean images
+dockerdoctor test clean volumes
 ```
 
-You can also target only one type:
+### Apply cleanup
 
 ```bash
-docker-disk-doctor --clean --images
-docker-disk-doctor --clean --volumes
+dockerdoctor clean all --yes
 ```
+
+Or target specific resources:
+
+```bash
+dockerdoctor clean images --yes
+dockerdoctor clean volumes --yes
+```
+
+> The `--yes` flag is required to prevent accidental data loss.
+
+---
+
+## Safety guarantees
+
+- No automatic deletions
+- No force-removal by default
+- No surprises
+- Docker may refuse to delete resources still in use — those are skipped safely
+
+---
 
 ## Support
 
@@ -117,6 +153,8 @@ If this tool saved you time, stress, or disk space,
 consider buying me a compute ☕
 
 https://buymeacoffee.com/revdal
+
+---
 
 ## License
 
