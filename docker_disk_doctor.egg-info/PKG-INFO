@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: docker-disk-doctor
-Version: 0.3.0
+Version: 0.3.1
 Summary: Safe, explain-first Docker disk usage inspector and cleanup tool
 Author: Andreas Revdal
 License: MIT
@@ -13,6 +13,10 @@ Requires-Dist: rich>=13.0.0
 Dynamic: license-file
 
 # Docker Disk Doctor
+
+![PyPI](https://img.shields.io/pypi/v/docker-disk-doctor)
+![Python](https://img.shields.io/pypi/pyversions/docker-disk-doctor)
+![License](https://img.shields.io/github/license/andreasrevdal/docker-disk-doctor)
 
 Docker Disk Doctor is a **safe, explain-first CLI tool** that shows how Docker is using disk space and what is safe to clean — without blindly running `docker system prune`.
 
@@ -79,22 +83,37 @@ sudo apt install -y pipx
 pipx ensurepath
 ```
 
-> You may need to open a **new shell** after running `pipx ensurepath`.
+> After `pipx ensurepath`, open a **new terminal** (or log out/in) so your PATH updates.
 
 ---
 
 ### Install Docker Disk Doctor
 
-Install directly from GitHub:
-
 ```bash
-pipx install git+https://github.com/andreasrevdal/docker-disk-doctor.git
+pipx install docker-disk-doctor
 ```
 
-This installs the `dockerdoctor` command globally for your user.
+This installs the `dockerdoctor` command (and also `docker-disk-doctor`).
 
-> Note: The tool is currently installed directly from GitHub.  
-> A PyPI release (`pipx install docker-disk-doctor`) may come later.
+---
+
+## Docker permission note (important)
+
+If you get a `Permission denied` error to `/var/run/docker.sock`, your user likely can't access Docker.
+
+Fix it with:
+
+```bash
+sudo usermod -aG docker $USER
+```
+
+Then **log out and back in**, and verify:
+
+```bash
+docker ps
+```
+
+Once `docker ps` works, Docker Disk Doctor will work.
 
 ---
 
@@ -106,13 +125,11 @@ This installs the `dockerdoctor` command globally for your user.
 dockerdoctor
 ```
 
-This will display:
+(or)
 
-- Used vs unused images
-- Running vs stopped containers
-- Attached vs orphaned volumes
-
-No changes are made to your system.
+```bash
+docker-disk-doctor
+```
 
 ---
 

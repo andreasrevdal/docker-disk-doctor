@@ -1,9 +1,5 @@
 # Docker Disk Doctor
 
-![PyPI](https://img.shields.io/pypi/v/docker-disk-doctor)
-![Python](https://img.shields.io/pypi/pyversions/docker-disk-doctor)
-![License](https://img.shields.io/github/license/andreasrevdal/docker-disk-doctor)
-
 Docker Disk Doctor is a **safe, explain-first CLI tool** that shows how Docker is using disk space and what is safe to clean — without blindly running `docker system prune`.
 
 Built from real homelab and infrastructure pain.
@@ -69,37 +65,22 @@ sudo apt install -y pipx
 pipx ensurepath
 ```
 
-> After `pipx ensurepath`, open a **new terminal** (or log out/in) so your PATH updates.
+> You may need to open a **new shell** after running `pipx ensurepath`.
 
 ---
 
 ### Install Docker Disk Doctor
 
-```bash
-pipx install docker-disk-doctor
-```
-
-This installs the `dockerdoctor` command (and also `docker-disk-doctor`).
-
----
-
-## Docker permission note (important)
-
-If you get a `Permission denied` error to `/var/run/docker.sock`, your user likely can't access Docker.
-
-Fix it with:
+Install directly from GitHub:
 
 ```bash
-sudo usermod -aG docker $USER
+pipx install git+https://github.com/andreasrevdal/docker-disk-doctor.git
 ```
 
-Then **log out and back in**, and verify:
+This installs the `dockerdoctor` command globally for your user.
 
-```bash
-docker ps
-```
-
-Once `docker ps` works, Docker Disk Doctor will work.
+> Note: The tool is currently installed directly from GitHub.  
+> A PyPI release (`pipx install docker-disk-doctor`) may come later.
 
 ---
 
@@ -111,11 +92,13 @@ Once `docker ps` works, Docker Disk Doctor will work.
 dockerdoctor
 ```
 
-(or)
+This will display:
 
-```bash
-docker-disk-doctor
-```
+- Used vs unused images
+- Running vs stopped containers
+- Attached vs orphaned volumes
+
+No changes are made to your system.
 
 ---
 
@@ -173,6 +156,8 @@ https://buymeacoffee.com/revdal
 
 ---
 
-## License
+![PyPI](https://img.shields.io/pypi/v/docker-disk-doctor)
+![Python](https://img.shields.io/pypi/pyversions/docker-disk-doctor)
+![License](https://img.shields.io/github/license/andreasrevdal/docker-disk-doctor)
+![Stars](https://img.shields.io/github/stars/andreasrevdal/docker-disk-doctor?style=social)
 
-MIT License
