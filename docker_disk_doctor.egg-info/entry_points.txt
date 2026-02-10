@@ -1,3 +1,0 @@
-[console_scripts]
-docker-disk-doctor = doctor.cli:main
-dockerdoctor = doctor.cli:main
