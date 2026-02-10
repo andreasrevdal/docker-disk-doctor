@@ -24,6 +24,5 @@ def analyze_containers(df: dict) -> list[dict]:
             "size_rootfs": format_bytes(size_root),
         })
 
-    # Sort by writable size (often what people care about)
     results.sort(key=lambda x: x["size_rw_bytes"], reverse=True)
     return results

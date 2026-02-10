@@ -14,7 +14,6 @@ from doctor.utils import format_bytes
 
 console = Console()
 
-
 def _summary_panel(images: list[dict], containers: list[dict], volumes: list[dict]) -> Panel:
     used_images = sum(1 for i in images if i["used"])
     unused_images = len(images) - used_images
@@ -38,7 +37,6 @@ def _summary_panel(images: list[dict], containers: list[dict], volumes: list[dic
     ])
     return Panel(text, title="Docker Disk Doctor", expand=False)
 
-
 def _images_table(images: list[dict]) -> Table:
     t = Table(title="Images (used vs unused)")
     t.add_column("Tag", overflow="fold")
@@ -50,7 +48,6 @@ def _images_table(images: list[dict]) -> Table:
         status = "[green]used[/green]" if i["used"] else "[yellow]unused[/yellow]"
         t.add_row(i["tag"], status, i["size"], i["reclaimable"])
     return t
-
 
 def _containers_table(containers: list[dict]) -> Table:
     t = Table(title="Containers (running vs stopped)")
@@ -64,7 +61,6 @@ def _containers_table(containers: list[dict]) -> Table:
         t.add_row(c["name"], state, c["size_rw"], c["size_rootfs"])
     return t
 
-
 def _volumes_table(volumes: list[dict]) -> Table:
     t = Table(title="Volumes (attached vs orphaned)")
     t.add_column("Name", overflow="fold")
@@ -77,7 +73,6 @@ def _volumes_table(volumes: list[dict]) -> Table:
         t.add_row(v["name"], status, v["size"], str(v["refcount"]))
     return t
 
-
 def _load():
     client = connect()
     df = system_df(client)
@@ -85,7 +80,6 @@ def _load():
     containers = analyze_containers(df)
     volumes = analyze_volumes(df)
     return client, images, containers, volumes
-
 
 def cmd_report(_args):
     _client, images, containers, volumes = _load()
@@ -97,11 +91,9 @@ def cmd_report(_args):
     console.print()
     console.print(_volumes_table(volumes))
 
-
 def _do_cleanup(target: str, apply: bool, yes: bool):
     client, images, containers, volumes = _load()
 
-    # Always show report first (nice UX)
     console.print(_summary_panel(images, containers, volumes))
     console.print()
 
@@ -142,24 +134,19 @@ def _do_cleanup(target: str, apply: bool, yes: bool):
 
     return 0
 
-
 def cmd_test_clean(args):
     return _do_cleanup(args.target, apply=False, yes=False)
 
-
 def cmd_clean(args):
     return _do_cleanup(args.target, apply=True, yes=args.yes)
-
 
 def build_parser():
     p = argparse.ArgumentParser(prog="dockerdoctor", description="Docker Disk Doctor (safe-by-default)")
     sub = p.add_subparsers(dest="command")
 
-    # default: report (also used when command is None)
     report = sub.add_parser("report", help="Show disk usage breakdown (default).")
     report.set_defaults(func=cmd_report)
 
-    # test clean
     test = sub.add_parser("test", help="Dry-run actions.")
     test_sub = test.add_subparsers(dest="test_command")
 
@@ -167,7 +154,6 @@ def build_parser():
     test_clean.add_argument("target", choices=["images", "volumes", "all"], help="What to clean.")
     test_clean.set_defaults(func=cmd_test_clean)
 
-    # clean (apply)
     clean = sub.add_parser("clean", help="Apply cleanup (requires --yes).")
     clean.add_argument("target", choices=["images", "volumes", "all"], help="What to clean.")
     clean.add_argument("--yes", action="store_true", help="Confirm destructive actions.")
@@ -175,16 +161,16 @@ def build_parser():
 
     return p
 
-
 def main():
     parser = build_parser()
     args = parser.parse_args()
 
-    # No subcommand -> default to report
-    if not getattr(args, "command", None):
-        cmd_report(args)
-        return 0
-
-    # Execute selected function
-    res = args.func(args)
-    return int(res) if isinstance(res, int) else 0
+    try:
+        if not getattr(args, "command", None):
+            cmd_report(args)
+            return 0
+        res = args.func(args)
+        return int(res) if isinstance(res, int) else 0
+    except RuntimeError as e:
+        console.print(Panel(str(e), title="Docker connection error", style="red", expand=False))
+        return 1
